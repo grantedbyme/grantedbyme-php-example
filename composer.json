@@ -1,0 +1,37 @@
+{
+    "name": "grantedbyme/grantedbyme-fat-free-framework",
+    "description": "grantedby.me Fat-Free Framework Integration",
+    "homepage": "https://grantedby.me",
+    "authors": [
+        {
+            "name": "GrantedByMe",
+            "email": "info@grantedby.me",
+            "homepage": "https://grantedby.me"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/phpseclib/phpseclib"
+        },
+        {
+            "type": "git",
+            "url": "https://github.com/grantedbyme/grantedbyme-php-sdk"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.6",
+        "composer/installers": "*",
+        "phpseclib/phpseclib": "dev-master",
+        "grantedbyme/grantedbyme": "dev-master",
+        "monolog/monolog": "*",
+        "bcosca/fatfree": "*"
+    },
+    "scripts": {
+        "post-update-cmd": [
+        ],
+        "post-install-cmd": [
+        ]
+    },
+    "minimum-stability": "dev"
+}
