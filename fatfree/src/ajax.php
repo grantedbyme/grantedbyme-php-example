@@ -66,24 +66,24 @@ class GrantedByMeAjax
             //|| !isset($headers['X-CSRFToken'])
             //|| !wp_verify_nonce($headers['X-CSRFToken'], 'csrf-token')
             || (($operation == 'getAccountState' || $operation == 'getSessionState' || $operation == 'getRegisterState')
-                && (!isset($_POST['token']) || !is_string($_POST['token']) || empty($_POST['token'])))
+                && (!isset($_POST['challenge']) || !is_string($_POST['challenge']) || empty($_POST['challenge'])))
         ) {
             header('HTTP/1.0 400 Bad Request');
             $this->gbm_error();
         }
         // call api
         if ($operation == 'getAccountToken') {
-            $response = self::init_sdk()->getAccountToken();
+            $response = self::init_sdk()->getChallenge(\GBM\ApiRequest::$TOKEN_ACCOUNT);
             die(json_encode($response));
         } else if ($operation == 'getAccountState') {
             $this->gbm_get_account_state();
         } else if ($operation == 'getSessionToken') {
-            $response = self::init_sdk()->getSessionToken();
+            $response = self::init_sdk()->getChallenge(\GBM\ApiRequest::$TOKEN_SESSION);
             die(json_encode($response));
         } else if ($operation == 'getSessionState') {
             $this->gbm_get_session_state();
         } else if ($operation == 'getRegisterToken') {
-            $response = self::init_sdk()->getSessionToken();
+            $response = self::init_sdk()->getChallenge(\GBM\ApiRequest::$TOKEN_ACTIVATE);
             die(json_encode($response));
         } else if ($operation == 'getRegisterState') {
             $this->gbm_get_register_state();
@@ -99,15 +99,15 @@ class GrantedByMeAjax
      */
     private function gbm_get_account_state()
     {
-        $response = self::init_sdk()->getSessionState($_POST['token']);
+        $response = self::init_sdk()->getChallengeState($_POST['challenge']);
         if (isset($response['status']) && $response['status'] == \GBM\ApiRequest::$STATUS_VALIDATED) {
-            $grantor = \GBM\ApiRequest::getRandomToken();
-            $result = self::init_sdk()->linkAccount($_POST['token'], $grantor);
+            $authenticator_secret = \GBM\ApiRequest::generateAuthenticatorSecret();
+            $result = self::init_sdk()->linkAccount($_POST['challenge'], $authenticator_secret);
             if (isset($result['success']) && $result['success'] == true) {
                 //
                 // CHANGE BY SERVICE IMPLEMENTOR BELOW
                 //
-                // TODO: Link current logged in user with $grantor
+                // TODO: Link current logged in user with $authenticator_secret
             }
         }
         die(json_encode($response));
@@ -120,10 +120,10 @@ class GrantedByMeAjax
      */
     private function gbm_get_register_state()
     {
-        $response = self::init_sdk()->getSessionState($_POST['token']);
+        $response = self::init_sdk()->getChallengeState($_POST['challenge']);
         if (isset($response['status']) && $response['status'] == \GBM\ApiRequest::$STATUS_VALIDATED) {
-            $grantor = \GBM\ApiRequest::getRandomToken();
-            $result = self::init_sdk()->linkAccount($_POST['token'], $grantor);
+            $authenticator_secret = \GBM\ApiRequest::generateAuthenticatorSecret();
+            $result = self::init_sdk()->linkAccount($_POST['challenge'], $authenticator_secret);
             if (isset($result['success']) && $result['success'] == true) {
                 //
                 // CHANGE BY SERVICE IMPLEMENTOR BELOW
@@ -141,15 +141,15 @@ class GrantedByMeAjax
      */
     private function gbm_get_session_state()
     {
-        $response = self::init_sdk()->getSessionState($_POST['token']);
+        $response = self::init_sdk()->getChallengeState($_POST['challenge']);
         if (isset($response['status']) && $response['status'] == \GBM\ApiRequest::$STATUS_VALIDATED) {
-            if (isset($response['grantor'])) {
+            if (isset($response['authenticator_secret'])) {
                 // do not send secret to frontend
-                unset($response['grantor']);
+                unset($response['authenticator_secret']);
                 //
                 // CHANGE BY SERVICE IMPLEMENTOR BELOW
                 //
-                // TODO: Login user here by $response['grantor']
+                // TODO: Login user here by $response['authenticator_secret']
                 self::$f3->set('SESSION.logged_in', true);
             }
         }

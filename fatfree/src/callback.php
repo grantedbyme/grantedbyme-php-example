@@ -46,13 +46,26 @@ class GrantedByMeCallback
     {
         $response = array();
         $response['success'] = false;
-        $response['error'] = 'Restricted access';
+        $response['error'] = 0;
         if(isset($_POST['signature']) && isset($_POST['payload'])) {
-            self::init_sdk();
-            $headers = getallheaders();
-            $signature = $_POST['signature'];
-            $payload = $_POST['payload'];
-            $message = $_POST['message'];
+            // $headers = getallheaders();
+            $encrypted_request = array();
+            $encrypted_request['signature'] = $_POST['signature'];
+            $encrypted_request['payload'] = $_POST['payload'];
+            if(isset($_POST['message'])) {
+                $encrypted_request['message'] = $_POST['message'];
+            }
+            if(isset($_POST['alg'])) {
+                $encrypted_request['alg'] = $_POST['alg'];
+            }
+
+            $decrypted_request = self::init_sdk()->getCrypto()->decrypt_json($encrypted_request);
+            if(isset($decrypted_request['operation'])) {
+                if($decrypted_request['operation'] == 'ping') {
+                    $response['success'] = true;
+                }
+                $response = self::init_sdk()->getCrypto()->encrypt_json($response);
+            }
         }
         die(json_encode($response));
     }
