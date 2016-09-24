@@ -19,19 +19,15 @@ class GrantedByMeCallback
             return self::$gbm;
         }
         $base_dir = __DIR__ . '/../data/';
-        if (file_exists($base_dir . 'service_key.pem')) {
-            // TODO: load your private pem, the server public key and the service API key
+        if (file_exists($base_dir . 'private_key.pem')) {
             $private_key = file_get_contents($base_dir . 'private_key.pem');
             $server_key = file_get_contents($base_dir . 'server_key.pem');
-            $service_key = file_get_contents($base_dir . 'service_key.pem');
         } else {
             $private_key = false;
             $server_key = false;
-            $service_key = false;
         }
         $api_url = \GBM\ApiSettings::$HOST;
         $config = array();
-        $config['service_key'] = $service_key;
         $config['private_key'] = $private_key;
         $config['public_key'] = $server_key;
         $config['api_url'] = $api_url;
@@ -58,11 +54,21 @@ class GrantedByMeCallback
             if(isset($_POST['alg'])) {
                 $encrypted_request['alg'] = $_POST['alg'];
             }
-
             $decrypted_request = self::init_sdk()->getCrypto()->decrypt_json($encrypted_request);
             if(isset($decrypted_request['operation'])) {
                 if($decrypted_request['operation'] == 'ping') {
                     $response['success'] = true;
+                } else if($decrypted_request['operation'] == 'unlink_account') {
+                    // TODO: implement
+                    $response['success'] = false;
+                } else if($decrypted_request['operation'] == 'rekey_account') {
+                    // TODO: implement
+                    $response['success'] = false;
+                } else if($decrypted_request['operation'] == 'revoke_challenge') {
+                    // TODO: implement
+                    $response['success'] = false;
+                } else {
+                    $response['success'] = false;
                 }
                 $response = self::init_sdk()->getCrypto()->encrypt_json($response);
             }
