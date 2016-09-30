@@ -54,6 +54,7 @@ class GrantedByMeAjax
         $headers = getallheaders();
         // get function (action)
         $operation = $_POST['operation'];
+        $challenge_type = intval($_POST['challenge_type']);
         // validate request
         if (!isset($operation)
             || !in_array($operation, self::$ALLOWED_OPERATIONS)
@@ -68,21 +69,19 @@ class GrantedByMeAjax
             $this->gbm_error();
         }
         // call api
-        if ($operation == 'getAccountToken') {
-            $response = self::init_sdk()->getChallenge(\GBM\ApiRequest::$TOKEN_ACCOUNT);
+        if ($operation == 'getChallenge') {
+            $response = self::init_sdk()->getChallenge($challenge_type);
             die(json_encode($response));
-        } else if ($operation == 'getAccountState') {
-            $this->gbm_get_account_state();
-        } else if ($operation == 'getSessionToken') {
-            $response = self::init_sdk()->getChallenge(\GBM\ApiRequest::$TOKEN_SESSION);
-            die(json_encode($response));
-        } else if ($operation == 'getSessionState') {
-            $this->gbm_get_session_state();
-        } else if ($operation == 'getRegisterToken') {
-            $response = self::init_sdk()->getChallenge(\GBM\ApiRequest::$TOKEN_ACTIVATE);
-            die(json_encode($response));
-        } else if ($operation == 'getRegisterState') {
-            $this->gbm_get_register_state();
+        } else if ($operation == 'getChallengeState') {
+            if($challenge_type == \GBM\ApiRequest::$CHALLENGE_AUTHORIZE) {
+                $this->gbm_get_account_state();
+            } else if($challenge_type == \GBM\ApiRequest::$CHALLENGE_AUTHENTICATE) {
+                $this->gbm_get_session_state();
+            } else if($challenge_type == \GBM\ApiRequest::$CHALLENGE_PROFILE) {
+                $this->gbm_get_register_state();
+            } else {
+                $this->gbm_error();
+            }
         } else {
             $this->gbm_error();
         }
